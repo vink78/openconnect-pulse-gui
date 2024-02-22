@@ -4,7 +4,7 @@ This script provides a wrapper around [OpenConnect](https://www.infradead.org/op
 
 ## Requirements
 
-The script can be used with python2 or python3, however python3 is recommended.  The following packages are also required:
+The script requires python3.  The following packages are also required:
 
  - python-gi or python-gobject
  - webkit2gtk
@@ -26,7 +26,7 @@ Instruction for specific distros can be found below.
 
 ## Installation
 
-This repo can be downloaded with `git clone https://github.com/utknoxville/openconnect-pulse-gui` or via the GitHub webpage.
+This repo can be downloaded with `git clone https://github.com/markus-meier74/openconnect-pulse-gui.git` or via the GitHub webpage.
 
 Installation is easiest by creating a virtual python environment with venv.
 The following instructions assume that the git repo was cloned to `${HOME}/scripts/vpn/openconnect-pulse-gui`.
