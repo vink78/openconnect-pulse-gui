@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-from __future__ import print_function
+#!/usr/bin/env python3
 
 import gi
 
@@ -22,7 +21,7 @@ except ImportError:
     from urlparse import urlparse, urlunparse
 
 gi.require_version("Gtk", "3.0")
-gi.require_version("WebKit2", "4.0")
+gi.require_version("WebKit2", "4.1")
 from gi.repository import Gtk, WebKit2, GLib
 
 log = logging.getLogger("pulsegui")
@@ -40,7 +39,7 @@ class PulseLoginView:
     ):
         self._window = Gtk.Window()
 
-        # API reference: https://lazka.github.io/pgi-docs/#WebKit2-4.0
+        # API reference: https://lazka.github.io/pgi-docs/#WebKit2-4.1
 
         uri_obj = urlparse(uri)._replace(scheme="https")
         uri = urlunparse(uri_obj)
@@ -160,25 +159,24 @@ class PulseLoginView:
 
     def _cookie_changed(self, event):
         uri = self._webview.get_uri()
-        # if self.verbose:
-        # print(event, uri)
+        #if self.verbose:
+        #  print(event, uri)
         self._cookies.get_cookies(uri, None, self._check_for_authcookie, uri)
 
     def _check_for_authcookie(self, source_object, res, uri):
         cookies = source_object.get_cookies_finish(res)
-        # print(uri)
         for cookie in cookies:
             #            print(
             #                " ",
-            #                cookie.name,
-            #                cookie.value,
-            #                cookie.domain,
-            #                cookie.path,
-            #                cookie.expires,
-            #                cookie.secure,
-            #                cookie.http_only,
+            #                cookie.get_name(),
+            #                cookie.get_value(),
+            #                cookie.get_domain(),
+            #                cookie.get_path(),
+            #                cookie.get_expires(),
+            #                cookie.get_secure(),
+            #                cookie.get_http_only()
             #            )
-            if cookie.name == self._session_cookie_name:
+            if cookie.get_name() == self._session_cookie_name:
                 if not self.success:
                     # Only call destroy once
                     self.auth_cookie = cookie
@@ -243,19 +241,21 @@ def parse_args(args=None, prog=None):
     return p, args
 
 
-def do_openconnect(server, authcookie, run_openconnect=True):
+def do_openconnect(server, authcookie, run_openconnect=False):
     cmd = [
+        "sudo",
         "openconnect",
         "--protocol",
         "nc",
         "-C",
-        '{}={}'.format(authcookie.name, authcookie.value),
+        f'{authcookie.get_name()}={authcookie.get_value()}',
         server,
     ]
     if not run_openconnect:
         print(" ".join(cmd))
         return None
     else:
+        print("Now running '", " ".join(cmd), "'")
         proc = subprocess.Popen(cmd)
         print(proc)
         ret = proc.wait()
@@ -302,11 +302,12 @@ def main(prog=None):
 
     run_openconnect = True
 
-    if os.geteuid() != 0:
+    if os.geteuid() == 0:
         log.warning(
-            "Running as non-root user. Will not run openconnect, only print the command"
+            "You should not run this script as root. Please configure sudo to allow access to openconnect."
         )
         run_openconnect = False
+        exit(0)
 
     # Create a thread for GTK handling
     # This allows us to do things in the main python thread (e.g. catch SIGINT)
@@ -338,6 +339,8 @@ def main(prog=None):
             exit_code = do_openconnect(
                 args.server, ret["auth_cookie"], run_openconnect=run_openconnect
             )
+            if exit_code == 0:
+                break
         except KeyboardInterrupt:
             log.warning("User exited")
             Gtk.main_quit()

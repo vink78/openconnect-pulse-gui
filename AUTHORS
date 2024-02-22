@@ -1,2 +1,3 @@
-Kyle Birkeland <kylebirkeland@gmail.com>
+Markus Meier <markus.meier@umanitoba.ca> - added some modifications call openconnect via sudo instead of running a web browser as root.
+Kyle Birkeland <kylebirkeland@gmail.com> - primary author of openconnect-pulse-gui
 Dan Lenski <dlenski@gmail.com> - primary author of the forked gp-saml-gui
