@@ -45,6 +45,7 @@ openconnect requires root privileges to configure the network interfaces for VPN
     %users ALL=(root:root) NOEXEC, NOPASSWD: /usr/bin/openconnect
 
 This file should be owned by root:root and have permissions 440.
+
     chown root:root /etc/sudoers.d/openconnect
     chmod 440 /etc/sudoers.d/openconnect
 
