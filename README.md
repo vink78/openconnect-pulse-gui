@@ -64,7 +64,7 @@ Here is an example bash script:
 
     #!/bin/bash
     . "${HOME}/scripts/vpn/venv/bin/activate"
-    WEBKIT_DISABLE_DMABUF_RENDERER=1 openconnect-pulse-gui "vpn.cc.umanitoba.ca/staff"
+    WEBKIT_DISABLE_DMABUF_RENDERER=1 openconnect-pulse-gui "vpn.cc.umanitoba.ca"
     deactivate
 
 ## Login process
