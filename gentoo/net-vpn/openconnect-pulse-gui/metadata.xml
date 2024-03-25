@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+  <maintainer type="person">
+    <email>markus.meier@umanitoba.ca</email>
+    <description>Primary maintainer</description>
+  </maintainer>
+  <longdescription>
+    This script provides a wrapper around OpenConnect which allows a user to log
+    on to an Ivanti (formerly Pulse) Secure VPN server using a WebKitGTK
+    browser window. It is compatible with Microsoft Entra multi-factor
+    authentication.
+ </longdescription>
+ </pkgmetadata>

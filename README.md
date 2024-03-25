@@ -1,10 +1,10 @@
 # openconnect-pulse-gui
 
-This script provides a wrapper around [OpenConnect](https://www.infradead.org/openconnect/) which allows a user to log in through a WebKitGTK2 window.  This allows OpenConnect to be compatible with web-based authentication mechanisms, such as SAML.
+This script provides a wrapper around [OpenConnect](https://www.infradead.org/openconnect/) which allows a user to log on to an Ivanti (formerly Pulse) Secure VPN server using a WebKitGTK browser window. It is compatible with Microsoft Entra multi-factor authentication.
 
 ## Requirements
 
-The script requires python3.  The following packages are also required:
+The script requires python3. The following packages are also required:
 
  - python-gi or python-gobject
  - webkit2gtk
@@ -23,6 +23,12 @@ Instruction for specific distros can be found below.
 ### Arch
 
     sudo pacman -S python-gobject webkit2gtk openconnect
+
+### Gentoo
+
+    An ebuild for your personal Gentoo overlay is provided in the gentoo subdirectory.
+    For instructions how to create your personal overlay, check out
+    https://wiki.gentoo.org/wiki/Creating_an_ebuild_repository
 
 ## Installation
 
@@ -71,9 +77,9 @@ Here is an example bash script:
 
 Anybody wishing to recreate this functionality either manually or using another library can with the following steps:
 
-1. Send the user to the sign-in URL.  This will either give them the ability to log in directly or redirect them to an external authentication server.
-2. Wait for a `Set-Cookie` header that contains the `DSID` cookie.  This is the authentication cookie used by Pulse Secure.
-3. Pass the cookie to `openconnect` using `--protocol nc` and `-C 'DSID=<cookie-value>'`.  Note that some workflows may work with `--protocol pulse`, but at this time SAML-based logins do not.
+1. Send the user to the sign-in URL. This will either give them the ability to log in directly or redirect them to an external authentication server.
+2. Wait for a `Set-Cookie` header that contains the `DSID` cookie. This is the authentication cookie used by Pulse Secure.
+3. Pass the cookie to `openconnect` using `--protocol nc` and `-C 'DSID=<cookie-value>'`. Note that some workflows may work with `--protocol pulse`, but at this time SAML-based logins do not.
 
 This script was tested and works with Ivanti Secure with Microsoft Entra multi-factor authentication at the University of Manitoba.
 
