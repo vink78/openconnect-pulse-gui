@@ -27,8 +27,7 @@ Instruction for specific distros can be found below.
 ### Gentoo
 
     An ebuild for your personal Gentoo overlay is provided in the gentoo subdirectory.
-    For instructions how to create your personal overlay, check out
-    https://wiki.gentoo.org/wiki/Creating_an_ebuild_repository
+    For instructions how to create your personal overlay, check out this [Gentoo Wiki Article](https://wiki.gentoo.org/wiki/Creating_an_ebuild_repository)
 
 ## Installation
 
