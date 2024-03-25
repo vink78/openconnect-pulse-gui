@@ -303,7 +303,7 @@ def main(prog=None):
     run_openconnect = True
 
     if os.geteuid() == 0:
-        log.warning(
+        log.error(
             "You should not run this script as root. Please configure sudo to allow access to openconnect."
         )
         run_openconnect = False
