@@ -5,6 +5,7 @@ import gi
 import argparse
 import logging
 import os
+import errno
 
 try:
     import queue
@@ -283,11 +284,11 @@ def saml_thread(jobQ, returnQ, closeEvent):
             returnQ.put(
                 {
                     "error": "Login window closed without producing session cookie",
-                    "retry": True,
+                    "retry": True
                 }
             )
         else:
-            returnQ.put({"auth_cookie": slv.auth_cookie})
+            returnQ.put({"auth_cookie": slv.auth_cookie, "retry": False})
 
 
 def main(prog=None):
@@ -304,7 +305,7 @@ def main(prog=None):
 
     if os.geteuid() == 0:
         log.error(
-            "You should not run this script as root. Please configure sudo to allow access to openconnect."
+            " You should not run this script as root. Please configure sudo to allow access to openconnect."
         )
         run_openconnect = False
         exit(0)
@@ -324,6 +325,8 @@ def main(prog=None):
     )
     webkitthread.start()
 
+    errCount = 1
+    errMaxCount = 3
     while True:
         try:
             jobQ.put(args)
@@ -339,17 +342,27 @@ def main(prog=None):
             exit_code = do_openconnect(
                 args.server, ret["auth_cookie"], run_openconnect=run_openconnect
             )
-            if exit_code == 0:
+
+            # Exit codes from openconnect/main.c
+            if (exit_code == 0 or # success
+            exit_code == errno.EPERM or # Server terminated connection
+            exit_code == errno.EPIPE or # Cookie was rejected by server
+            exit_code == errno.EINTR or # User cancelled
+            exit_code is None):
                 break
+
         except KeyboardInterrupt:
             log.warning("User exited")
             Gtk.main_quit()
             break
         else:
-            if exit_code is None:
+            if errCount > errMaxCount:
+                log.warning(f"openconnect failed to establish connection {errMaxCount:d} times. Aborting.")
                 break
-            log.info("Got exit code %d. Retrying..", exit_code)
+            log.info(f"openconnect failed to establish connection with exit code {exit_code:d}. Retrying..")
+            errCount += 1
             time.sleep(1)
+
     closeEvent.set()
     webkitthread.join()
 
