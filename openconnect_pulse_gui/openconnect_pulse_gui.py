@@ -38,7 +38,7 @@ class PulseLoginView:
         verify=True,
         session_cookie_name="DSID",
     ):
-        self._window = Gtk.Window()
+        self._window = Gtk.Window().new(Gtk.WindowType.TOPLEVEL)
 
         # API reference: https://lazka.github.io/pgi-docs/#WebKit2-4.1
 
@@ -53,6 +53,10 @@ class PulseLoginView:
         self._session_cookie_name = session_cookie_name
 
         self._ctx = WebKit2.WebContext.get_default()
+        self._WebSiteDataManager = self._ctx.get_website_data_manager()
+        # self._WebSiteDataManager.set_persistent_credential_storage_enabled(True) 
+        log.debug(f"Persistent credential storage enabled: {self._WebSiteDataManager.get_persistent_credential_storage_enabled()}")
+        log.debug(f"WebSiteDataManager is ephemeral: {self._WebSiteDataManager.props.is_ephemeral}")
         if not verify:
             self._ctx.set_tls_errors_policy(WebKit2.TLSErrorsPolicy.IGNORE)
 
@@ -67,14 +71,18 @@ class PulseLoginView:
         self._webview = WebKit2.WebView()
         self._webview.connect("load-failed-with-tls-errors", self._tls_error, None)
 
-        self._window.resize(500, 500)
         self._window.add(self._webview)
-        self._window.show_all()
         self._window.set_title("Pulse Connect Login")
         self._window.connect("delete-event", self._user_close)
         self._window.connect("destroy", self._close)
         self._webview.connect("resource-load-started", self._log_request)
         self._cookies.connect("changed", self._cookie_changed)
+        
+        # self._wvSettings=self._webview.get_settings()
+        # log.debug(f"Private browsing enabled: {self._wvSettings.get_enable_private_browsing()}")
+
+        self._window.show_all()
+        self._setWindowSize(1300, 600)
 
         self._request_id = 0
 
@@ -82,6 +90,28 @@ class PulseLoginView:
             self._webview.load_html(html, uri)
         else:
             self._webview.load_uri(uri)
+            
+    def _getCurrentMonitorGeometry(self):
+        'Return the geometry of the monitor on which self._window is shown.'
+        display=self._window.get_display()
+        GdkWindow=self._window.get_window()
+        if GdkWindow is None: # The window is not realized, yet
+            currentMonitor=display.get_monitor(0) # Just pick the first available monitor
+        else:
+            currentMonitor=display.get_monitor_at_window(self._window.get_window())
+        return currentMonitor.get_geometry()
+    
+    def _setWindowSize(self, width, height):
+        '''
+            Set size of self._window to width x height,
+            but not larger than the monitor self._window is displayed on.
+        '''
+        currentMonitorGeometry=self._getCurrentMonitorGeometry()
+        if width > currentMonitorGeometry.width:
+            width = currentMonitorGeometry.width
+        if height > currentMonitorGeometry.height:
+           height = currentMonitorGeometry.height
+        self._window.resize(width, height)
 
     def _user_close(self, *args, **kwargs):
         self.user_closed = True
@@ -156,7 +186,7 @@ class PulseLoginView:
                 print("%s: %s" % (h, v), file=sys.stderr)
             print(file=sys.stderr)
         if charset or content_type.startswith("text/"):
-            print(data.decode(charset or "utf-8"), file=sys.stderr)
+            print(data.decode(charset or "utf-8"), file=sys.stderr)        
 
     def _cookie_changed(self, event):
         uri = self._webview.get_uri()
