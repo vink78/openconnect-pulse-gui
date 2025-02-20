@@ -59,7 +59,7 @@ The privileges can be tailored to your needs as described in the sudo manual.
 
 Activate the virtual environment that has `openconnect-pulse-gui` installed. The `openconnect-pulse-gui` script should now be in your $PATH.
 
-The only required required argument is the sign-in link / server URL.  Other arguments can be found by using `python openconnect-pulse-gui.py -h`.
+The script is modified using a specific server URI by default. Other arguments can be found by using `python openconnect-pulse-gui.py -h`.
 
 If WebKit2 throws errors such as `KMS: DRM_IOCTL_MODE_CREATE_DUMB failed: Permission denied`,
 disable Shared DMA buffer rendering by setting the environmental variable WEBKIT_DISABLE_DMABUF_RENDERER=1.
@@ -68,7 +68,7 @@ Here is an example bash script:
 
     #!/bin/bash
     . "${HOME}/scripts/vpn/venv/bin/activate"
-    WEBKIT_DISABLE_DMABUF_RENDERER=1 openconnect-pulse-gui "vpn.cc.umanitoba.ca"
+    WEBKIT_DISABLE_DMABUF_RENDERER=1 openconnect-pulse-gui -s "https://<my specifig uri>"
     deactivate
 
 ## Login process

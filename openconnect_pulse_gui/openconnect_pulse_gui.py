@@ -320,7 +320,12 @@ class PulseLoginView:
 
 def parse_args(args=None, prog=None):
     p = argparse.ArgumentParser(prog=prog)
-    p.add_argument("server", help="Pulse Secure Connect URL")
+    p.add_argument(
+        "-s",
+        "--server",
+        default="https://<my default uri>",
+        help="Ivanti Connect Secure URL",
+    )
     p.add_argument(
         "--insecure", action="store_true", help="Ignore invalid server certificate",
     )
