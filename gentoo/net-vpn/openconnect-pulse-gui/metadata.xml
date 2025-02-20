@@ -8,7 +8,6 @@
   <longdescription>
     This script provides a wrapper around OpenConnect which allows a user to log
     on to an Ivanti (formerly Pulse) Secure VPN server using a WebKitGTK
-    browser window. It is compatible with Microsoft Entra multi-factor
-    authentication.
+    browser window. It is compatible with SAML authentication.
  </longdescription>
  </pkgmetadata>

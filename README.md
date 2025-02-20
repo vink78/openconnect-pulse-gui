@@ -1,6 +1,6 @@
 # openconnect-pulse-gui
 
-This script provides a wrapper around [OpenConnect](https://www.infradead.org/openconnect/) which allows a user to log on to an Ivanti (formerly Pulse) Secure VPN server using a WebKitGTK browser window. It is compatible with Microsoft Entra multi-factor authentication.
+This script provides a wrapper around [OpenConnect](https://www.infradead.org/openconnect/) which allows a user to log on to an Ivanti (formerly Pulse) Secure VPN server using a WebKitGTK browser window. It is compatible with SAML authentication.
 
 ## Requirements
 
@@ -79,6 +79,6 @@ Anybody wishing to recreate this functionality either manually or using another 
 2. Wait for a `Set-Cookie` header that contains the `DSID` cookie. This is the authentication cookie used by Pulse Secure.
 3. Pass the cookie to `openconnect` using `--protocol nc` and `-C 'DSID=<cookie-value>'`. Note that some workflows may work with `--protocol pulse`, but at this time SAML-based logins do not.
 
-This script was tested and works with Ivanti Secure with Microsoft Entra multi-factor authentication at the University of Manitoba.
+This script was tested and works with Ivanti Connect Secure running 22.7r2.6 (build 3981) using a multi-factor authentication based on SAML.
 
 

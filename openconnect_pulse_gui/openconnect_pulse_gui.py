@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
+import json
 import gi
+from cryptography.fernet import Fernet
 
 import argparse
 import logging
 import os
 import errno
+import base64
 
 try:
     import queue
@@ -25,8 +28,64 @@ gi.require_version("Gtk", "3.0")
 gi.require_version("WebKit2", "4.1")
 from gi.repository import Gtk, WebKit2, GLib
 
-log = logging.getLogger("pulsegui")
+# File to save form data
+DATA_FILE = os.path.expanduser("~/.local/openconnect_data.json")
+KEY_FILE = os.path.expanduser("~/.local/secret.key")
 
+# Generate an encryption key
+def load_or_generate_key():
+    if not os.path.exists(KEY_FILE):
+        key = Fernet.generate_key()
+        with open(KEY_FILE, "wb") as key_file:
+            key_file.write(key)
+    else:
+        with open(KEY_FILE, "rb") as key_file:
+            key = key_file.read()
+    return key
+
+key = load_or_generate_key()
+fernet = Fernet(key)
+
+# Encrypt all fields which contain 'pass'
+def encrypt_sensitive_data(data):
+    for field in data:
+        if "pass" in field.lower():  # Check if "pass" is on field name
+            data[field] = base64.b64encode(fernet.encrypt(data[field].encode())).decode()
+    return data
+
+# Decrypt all fields which contain 'pass'
+def decrypt_sensitive_data(data):
+    for field in data:
+        if "pass" in field.lower():
+            try:
+                data[field] = fernet.decrypt(base64.b64decode(data[field])).decode()
+            except Exception as e:
+                print(f"❌Decryption error for {field}: {e}")
+                data[field] = "Error"
+    return data
+
+# Load all saved data
+def load_saved_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+            return decrypt_sensitive_data(data)
+    return {}
+
+# Save all data, and, encrypt sensitive data
+def save_form_data(new_data):
+    'Save all forms data'
+    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+
+    saved_data = load_saved_data()
+    saved_data.update(new_data)
+    saved_data = encrypt_sensitive_data(saved_data)
+
+    with open(DATA_FILE, "w") as f:
+        json.dump(saved_data, f, indent=4)
+
+
+log = logging.getLogger("pulsegui")
 
 class PulseLoginView:
     def __init__(
@@ -70,9 +129,10 @@ class PulseLoginView:
 
         self._webview = WebKit2.WebView()
         self._webview.connect("load-failed-with-tls-errors", self._tls_error, None)
+        self._webview.connect("load-changed", self._on_load_changed)
 
         self._window.add(self._webview)
-        self._window.set_title("Pulse Connect Login")
+        self._window.set_title("Ivanti Connect Secure Login")
         self._window.connect("delete-event", self._user_close)
         self._window.connect("destroy", self._close)
         self._webview.connect("resource-load-started", self._log_request)
@@ -91,6 +151,48 @@ class PulseLoginView:
         else:
             self._webview.load_uri(uri)
             
+    def _on_load_changed(self, webview, load_event):
+        'Inject a JavaScript after page load'
+        if load_event == WebKit2.LoadEvent.FINISHED:
+            saved_data = load_saved_data()
+
+            js_fill = f"""
+            (function() {{
+                let savedData = {json.dumps(saved_data)};
+                for (let key in savedData) {{
+                    let input = document.querySelector(`[name="${{key}}"]`);
+                    if (input) input.value = savedData[key];
+                }}
+            }})();
+            """
+            webview.evaluate_javascript(script=js_fill, length=len(js_fill), world_name=None, source_uri=None, cancellable=None, callback=None)
+
+            # Intercept form submit to save data
+            js_capture = """
+            (function() {
+                document.addEventListener('submit', function(event) {
+                    let formData = {};
+                    new FormData(event.target).forEach((value, key) => {
+                        formData[key] = value;
+                    });
+                    window.webkit.messageHandlers.external.postMessage(JSON.stringify(formData));
+                }, true);
+            })();
+            """
+            webview.evaluate_javascript(script=js_capture, length=len(js_capture), world_name=None, source_uri=None, cancellable=None, callback=None)
+
+            # Connect WebKit2 to a Python function to store dataset
+            manager = self._webview.get_user_content_manager()
+            manager.register_script_message_handler("external")
+            manager.connect("script-message-received::external", self._on_form_submit)
+
+    def _on_form_submit(self, user_content_manager, message):
+        'Save form data'
+        print("✅ Save all forms data.")
+        data = json.loads(message.get_js_value().to_string())
+
+        save_form_data(data)
+
     def _getCurrentMonitorGeometry(self):
         'Return the geometry of the monitor on which self._window is shown.'
         display=self._window.get_display()
