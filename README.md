@@ -45,8 +45,8 @@ The following instructions assume that the git repo was cloned to `${HOME}/scrip
 # Configuring sudo
 openconnect requires root privileges to configure the network interfaces for VPN. The `openconnect-pulse-gui` script embeds a web browser and should definitely not be run as root. The script will try to execute openconnect with sudo. The user requires access to the openconnect command via sudo which can be configured by creating a plain text file /etc/sudoers.d/openconnect with a content like this:
 
-    # Allow all users that are in the "users" group to run /usr/bin/openconnect as root without asking for a password
-    %users ALL=(root:root) NOEXEC, NOPASSWD: /usr/bin/openconnect
+    # Allow all users that are in the "users" group to run /usr/local/sbin/openconnect as root without asking for a password
+    %users ALL=(root:root) NOEXEC, NOPASSWD: /usr/local/sbin/openconnect
 
 This file should be owned by root:root and have permissions 440.
 
@@ -77,7 +77,7 @@ Anybody wishing to recreate this functionality either manually or using another 
 
 1. Send the user to the sign-in URL. This will either give them the ability to log in directly or redirect them to an external authentication server.
 2. Wait for a `Set-Cookie` header that contains the `DSID` cookie. This is the authentication cookie used by Pulse Secure.
-3. Pass the cookie to `openconnect` using `--protocol nc` and `-C 'DSID=<cookie-value>'`. Note that some workflows may work with `--protocol pulse`, but at this time SAML-based logins do not.
+3. Pass the cookie to `openconnect` using `--protocol pulse` and `--cookie <cookie-value>`.
 
 This script was tested and works with Ivanti Connect Secure running 22.7r2.6 (build 3981) using a multi-factor authentication based on SAML.
 

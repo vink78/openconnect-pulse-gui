@@ -382,11 +382,12 @@ def parse_args(args=None, prog=None):
 def do_openconnect(server, authcookie, run_openconnect=False):
     cmd = [
         "sudo",
-        "openconnect",
+        "/usr/local/sbin/openconnect",
         "--protocol",
-        "nc",
-        "-C",
-        f'{authcookie.get_name()}={authcookie.get_value()}',
+        "pulse",
+        "--useragent", "Pulse-Secure/22.8.1.31437",
+        "--cookie",
+        f'{authcookie.get_value()}',
         server,
     ]
     if not run_openconnect:
